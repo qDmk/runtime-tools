@@ -109,7 +109,7 @@ func main() {
 	}
 
 	err = r.Start()
-	util.SpecErrorOK(t, err == nil, specerror.NewError(specerror.StartWithProcUnsetGenError, fmt.Errorf("`start` operation MUST generate an error if `process` was not set"), rspecs.Version), err)
+	util.SpecErrorOK(t, err != nil, specerror.NewError(specerror.StartWithProcUnsetGenError, fmt.Errorf("`start` operation MUST generate an error if `process` was not set"), rspecs.Version), err)
 	err = util.WaitingForStatus(r, util.LifecycleStatusStopped, time.Second*10, time.Second*1)
 	if err == nil {
 		err = r.Delete()

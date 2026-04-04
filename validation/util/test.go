@@ -252,6 +252,7 @@ func RuntimeInsideValidate(g *generate.Generator, t *tap.T, f PreFunc) (err erro
 		}
 		runtimeInsideValidateCalled = true
 		os.Stdout.Write(stdout)
+		os.Stderr.Write(stderr)
 	}
 	return nil
 }
