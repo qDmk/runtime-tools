@@ -17,6 +17,12 @@ func main() {
 	t := tap.New()
 	t.Header(0)
 
+	cg, err := cgroups.FindCgroup()
+	if err != nil {
+		util.Fatal(err)
+	}
+	_, isV2 := cg.(*cgroups.CgroupV2)
+
 	cases := []struct {
 		limit      int64
 		swappiness uint64
@@ -28,6 +34,15 @@ func main() {
 		{151781376, 50},
 		{151781376, 100},
 	}
+	if isV2 {
+		cases = []struct {
+			limit      int64
+			swappiness uint64
+		}{
+			{50593792, 0},
+			{151781376, 0},
+		}
+	}
 
 	for _, c := range cases {
 		g, err := util.GetDefaultGenerator()
@@ -37,11 +52,13 @@ func main() {
 		g.SetLinuxCgroupsPath(cgroups.AbsCgroupPath)
 		g.SetLinuxResourcesMemoryLimit(c.limit)
 		g.SetLinuxResourcesMemoryReservation(c.limit)
-		g.SetLinuxResourcesMemorySwap(c.limit)
-		g.SetLinuxResourcesMemoryKernel(c.limit)
-		g.SetLinuxResourcesMemoryKernelTCP(c.limit)
-		g.SetLinuxResourcesMemorySwappiness(c.swappiness)
-		g.SetLinuxResourcesMemoryDisableOOMKiller(true)
+		if !isV2 {
+			g.SetLinuxResourcesMemorySwap(c.limit)
+			g.SetLinuxResourcesMemoryKernel(c.limit)
+			g.SetLinuxResourcesMemoryKernelTCP(c.limit)
+			g.SetLinuxResourcesMemorySwappiness(c.swappiness)
+			g.SetLinuxResourcesMemoryDisableOOMKiller(true)
+		}
 		err = util.RuntimeOutsideValidate(g, t, util.ValidateLinuxResourcesMemory)
 		if err != nil {
 			t.Fail(err.Error())

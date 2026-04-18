@@ -61,8 +61,10 @@ func FindCgroup() (Cgroup, error) {
 			return cg, nil
 		} else if postSeparatorFields[0] == "cgroup2" {
 			cgroupv2 = true
-			continue
-			// TODO cgroupv2 unimplemented
+			cg := &CgroupV2{
+				MountPath: fields[4],
+			}
+			return cg, nil
 		}
 	}
 
@@ -96,4 +98,24 @@ func GetSubsystemPath(pid int, subsystem string) (string, error) {
 	}
 
 	return "", fmt.Errorf("subsystem %s not found", subsystem)
+}
+
+func getUnifiedPath(pid int) (string, error) {
+	contents, err := os.ReadFile(fmt.Sprintf("/proc/%d/cgroup", pid))
+	if err != nil {
+		return "", err
+	}
+
+	parts := strings.Split(strings.TrimSpace(string(contents)), "\n")
+	for _, part := range parts {
+		elem := strings.SplitN(part, ":", 3)
+		if len(elem) < 3 {
+			continue
+		}
+		if elem[0] == "0" && elem[1] == "" {
+			return strings.TrimSuffix(elem[2], " (deleted)"), nil
+		}
+	}
+
+	return "", fmt.Errorf("unified cgroup path not found")
 }
