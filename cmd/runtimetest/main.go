@@ -1186,6 +1186,10 @@ func (c *complianceTester) validatePosixMounts(spec *rspec.Spec) error {
 		} else {
 			rfcError, err = c.Ok(foundInOrder, specerror.MountsInOrder, spec.Version, fmt.Sprintf("mounts[%d] (%s) found in order", i, configMount.Destination))
 		}
+		var config rspec.Mount
+		if highestMatchedConfig < 0 {
+			config = spec.Mounts[highestMatchedConfig]
+		}
 		_ = c.harness.YAML(map[string]any{
 			"level":       rfcError.Level.String(),
 			"reference":   rfcError.Reference,
@@ -1193,7 +1197,7 @@ func (c *complianceTester) validatePosixMounts(spec *rspec.Spec) error {
 			"indexConfig": i,
 			"indexSystem": configSys[i],
 			"earlier": map[string]any{
-				"config":      spec.Mounts[highestMatchedConfig],
+				"config":      config,
 				"indexConfig": highestMatchedConfig,
 				"indexSystem": configSys[highestMatchedConfig],
 			},
