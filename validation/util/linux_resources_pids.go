@@ -22,8 +22,8 @@ func ValidateLinuxResourcesPids(config *rspec.Spec, t *tap.T, state *rspec.State
 		return nil
 	}
 
-	t.Ok(lpd.Limit == config.Linux.Resources.Pids.Limit, "pids limit is set correctly")
-	t.Diagnosticf("expect: %d, actual: %d", config.Linux.Resources.Pids.Limit, lpd.Limit)
+	expected := config.Linux.Resources.Pids.Limit
+	checkOptionalValue(t, "pids limit", expected, lpd.Limit)
 
 	return nil
 }
